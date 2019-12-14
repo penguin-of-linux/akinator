@@ -64,6 +64,8 @@
     <Compile Include="CharacterEntry.cs" />
     <Compile Include="DataProvider\IDataProvider.cs" />
     <Compile Include="DataProvider\JsonDataProvider.cs" />
+    <Compile Include="CharacterQuestion.cs" />
+    <Compile Include="HistoryEntry.cs" />
     <Compile Include="UserAnswer.cs" />
     <Compile Include="IAkinator.cs" />
     <Compile Include="Program.cs" />

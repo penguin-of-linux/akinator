@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using GroboContainer.Core;
 using GroboContainer.Impl;
 using MihaZupan;
+using Newtonsoft.Json;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 
@@ -32,14 +35,20 @@ namespace AkinatorBot
             return container;
         }
 
-        static async void OnMessage(object sender, MessageEventArgs e)
+        static void OnMessage(object sender, MessageEventArgs e)
         {
-            await botClient.SendTextMessageAsync(
-                chatId: e.Message.Chat,
-                text: "You said:\n" + e.Message.Text
-            );
+            if (!started)
+            {
+                started = true;
+                akinator.Start();
+                return;
+            }
+
+            var userAnswer = UserAnswer.Yes;
+            akinator.NextQuestion(userAnswer);
         }
 
+        private static bool started;
         private static TelegramBotClient botClient;
         private static IAkinator akinator;
     }

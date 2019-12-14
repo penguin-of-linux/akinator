@@ -4,7 +4,6 @@
     {
         Yes,
         No,
-        DontKnow,
-        DoesNotMakeSense
+        DontKnow
     }
 }
