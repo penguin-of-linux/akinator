@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 
@@ -20,6 +21,11 @@ namespace AkinatorBot.DataProvider
         public CharacterEntry[] GetCharacters()
         {
             return characters;
+        }
+
+        public void Save(IEnumerable<CharacterEntry> characters)
+        {
+            File.WriteAllText("../../files/characters.json", JsonConvert.SerializeObject(characters, Formatting.Indented));
         }
 
         private readonly string[] questions;

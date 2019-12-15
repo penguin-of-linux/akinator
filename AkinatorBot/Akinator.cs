@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using AkinatorBot.DataProvider;
+using Newtonsoft.Json;
 
 namespace AkinatorBot
 {
@@ -12,6 +14,8 @@ namespace AkinatorBot
             this.dataProvider = dataProvider;
             charactersWithProbability = dataProvider.GetCharacters()
                 .ToDictionary(x => x, x => x.Count / (double)gameCounter);
+            history = new List<HistoryEntry>();
+            questions = dataProvider.GetQuestions();
         }
 
         public AkinatorAnswer Start()
@@ -52,6 +56,37 @@ namespace AkinatorBot
             return nextQuestion;
         }
 
+        public void AddCharacter(string name)
+        {
+            var characterQuestions = new List<CharacterQuestion>();
+            for (var i = 1; i <= questions.Length; i++)
+            {
+                characterQuestions.Add(new CharacterQuestion
+                {
+                    Count = 0,
+                    Id = i,
+                    Probability = 0.1d
+                });
+            }
+
+            AddCharacter(new CharacterEntry
+            {
+                Name = name,
+                Count = 0,
+                Questions = characterQuestions.ToArray()
+            });
+        }
+
+        public void AddCharacter(CharacterEntry character)
+        {
+            charactersWithProbability[character] = 0.1;
+        }
+
+        public void Save()
+        {
+            dataProvider.Save(charactersWithProbability.Keys);
+        }
+
         private void EndGame()
         {
             
@@ -69,14 +104,14 @@ namespace AkinatorBot
                 return new AkinatorAnswer
                 {
                     AkinatorAnswerType = AkinatorAnswerType.Answer,
-                    Message = "Suppose:",
+                    Message = "Предпологаю, что это " + bestCharacter.Name,
                     CharacterToSuppose = bestCharacter
                 };
 
             return new AkinatorAnswer
             {
                 AkinatorAnswerType = AkinatorAnswerType.Question,
-                Message = nextQuestionId.ToString()
+                Message = questions[bestQuestion] + "?"
             };
         }
 
@@ -134,10 +169,11 @@ namespace AkinatorBot
         private CharacterEntry characterToSuppose;
         private int questionCounter;
         private int nextQuestionId;
-        private int gameCounter;
+        private int gameCounter = 1;
 
         private List<HistoryEntry> history { get; set; }
         private Dictionary<CharacterEntry, double> charactersWithProbability;
         private readonly IDataProvider dataProvider;
+        private string[] questions;
     }
 }
