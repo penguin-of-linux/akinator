@@ -79,11 +79,11 @@ namespace AkinatorBot
                 Message = "Pls, type 'start', 'yes', 'no' or 'idk'"
             };
 
-            var shitEncoding = Encoding.UTF8;
             var message = AnswerToString(answer);
-            var bytes = Encoding.UTF8.GetBytes(message);
-            var converted = Encoding.Convert(Encoding.UTF8, shitEncoding, bytes);
-            botClient.SendTextMessageAsync(e.Message.Chat.Id, Encoding.Default.GetString(converted));
+            //var shitEncoding = new UTF8Encoding(false);
+            //var bytes = Encoding.UTF8.GetBytes(message);
+            //var converted = Encoding.Convert(Encoding.UTF8, shitEncoding, bytes);
+            botClient.SendTextMessageAsync(e.Message.Chat.Id, message);
         }
 
         static string AnswerToString(AkinatorAnswer answer)
