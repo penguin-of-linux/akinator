@@ -13,7 +13,12 @@ namespace AkinatorBot
         {
             this.dataProvider = dataProvider;
             charactersWithProbability = dataProvider.GetCharacters()
-                .ToDictionary(x => x, x => x.Count / (double)gameCounter);
+                .Select(x => new CharacterWithProbability
+                {
+                    Character = x,
+                    Probability = x.Count / (double) gameCounter
+                })
+                .ToList();
             history = new List<HistoryEntry>();
             questions = dataProvider.GetQuestions();
         }
@@ -79,12 +84,16 @@ namespace AkinatorBot
 
         public void AddCharacter(CharacterEntry character)
         {
-            charactersWithProbability[character] = 0.1;
+            charactersWithProbability.Add(new CharacterWithProbability
+            {
+                Character = character,
+                Probability = 0.1
+            });
         }
 
         public void Save()
         {
-            dataProvider.Save(charactersWithProbability.Keys);
+            dataProvider.Save(charactersWithProbability.Select(x => x.Character));
         }
 
         private void EndGame()
@@ -127,10 +136,10 @@ namespace AkinatorBot
 
         private void RecalculateCharacters(UserAnswer userAnswer)
         {
-            foreach (var character in charactersWithProbability.Keys)
+            foreach (var character in charactersWithProbability)
             {
-                var p = charactersWithProbability[character];
-                var q = character.Questions.First(x => x.Id == nextQuestionId).Probability;
+                var p = character.Probability;
+                var q = character.Character.Questions.First(x => x.Id == nextQuestionId).Probability;
                 switch (userAnswer)
                 {
                     case UserAnswer.Yes:
@@ -144,7 +153,7 @@ namespace AkinatorBot
                         break;
                 }
 
-                charactersWithProbability[character] = p;
+                character.Probability = p;
             }
         }
 
@@ -152,10 +161,11 @@ namespace AkinatorBot
         {
             foreach (var question in character.Questions)
             {
-                var used = history.Any(x => x.QuestionId == question.Id);
+                var questionFromHistory = history.FirstOrDefault(x => x.QuestionId == question.Id);
+                var usedAndYes = questionFromHistory != null && questionFromHistory.UserAnswer == UserAnswer.Yes;
                 question.Probability =
-                    (question.Count * question.Probability + (used ? 1 : 0)) / (question.Count + 1);
-                if (used) question.Count++;
+                    (question.Count * question.Probability + (usedAndYes ? 1 : 0)) / (question.Count + 1);
+                if (usedAndYes) question.Count++;
             }
 
             character.Count++;
@@ -163,7 +173,7 @@ namespace AkinatorBot
 
         private CharacterEntry GetTheBestCharacter()
         {
-            return charactersWithProbability.OrderByDescending(x => x.Value).First().Key;
+            return charactersWithProbability.OrderByDescending(x => x.Probability).First().Character;
         }
 
         private CharacterEntry characterToSuppose;
@@ -172,7 +182,7 @@ namespace AkinatorBot
         private int gameCounter = 1;
 
         private List<HistoryEntry> history { get; set; }
-        private Dictionary<CharacterEntry, double> charactersWithProbability;
+        private List<CharacterWithProbability> charactersWithProbability;
         private readonly IDataProvider dataProvider;
         private string[] questions;
     }

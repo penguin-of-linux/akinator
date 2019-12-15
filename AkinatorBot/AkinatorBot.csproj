@@ -62,6 +62,7 @@
     <Compile Include="AkinatorAnswer.cs" />
     <Compile Include="AkinatorAnswerType.cs" />
     <Compile Include="CharacterEntry.cs" />
+    <Compile Include="CharacterWithProbability.cs" />
     <Compile Include="DataProvider\IDataProvider.cs" />
     <Compile Include="DataProvider\JsonDataProvider.cs" />
     <Compile Include="CharacterQuestion.cs" />

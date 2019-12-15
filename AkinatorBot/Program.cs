@@ -42,7 +42,12 @@ namespace AkinatorBot
             AkinatorAnswer answer;
             if(e.Message.Text.StartsWith("start"))
             {
+                started = true;
                 answer = akinator.Start();
+            }
+            else if(!started)
+            {
+                return;
             }
             else if(e.Message.Text.StartsWith("yes"))
             {
@@ -91,6 +96,7 @@ namespace AkinatorBot
             return answer.Message;
         }
 
+        private static bool started = false;
         private static TelegramBotClient botClient;
         private static IAkinator akinator;
     }
