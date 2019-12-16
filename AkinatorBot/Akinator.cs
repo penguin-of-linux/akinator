@@ -8,6 +8,7 @@ namespace AkinatorBot
     public class Akinator : IAkinator
     {
         public const int QuestionNumber = 20;
+        public const int QuestionCountToSuppose = 15;
 
         public Akinator(IDataProvider dataProvider)
         {
@@ -155,12 +156,13 @@ namespace AkinatorBot
 
             _questionCounter++;
 
-            if (_questionCounter % 10 == 9) return Suppose();
+            if (_questionCounter % QuestionCountToSuppose == QuestionCountToSuppose - 1)
+                return SupposeInternal(bestCharacter);
 
             return new AkinatorAnswer
             {
                 AkinatorAnswerType = AkinatorAnswerType.Question,
-                Message = _questions[bestQuestion] + "?"
+                Message = _questions[bestQuestion - 1] + "?"
             };
         }
 
