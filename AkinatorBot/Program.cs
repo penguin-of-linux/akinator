@@ -22,9 +22,8 @@ namespace AkinatorBot
 
             var container = InitializeContainer();
             akinator = container.Get<IAkinator>();
-
-            //botClient = new TelegramBotClient(token, proxy);
-            botClient = new TelegramBotClient(token);
+            botClient = new TelegramBotClient(token, proxy);
+            //botClient = new TelegramBotClient(token);
             botClient.OnMessage += OnMessage;
             botClient.StartReceiving();
 
@@ -45,6 +44,24 @@ namespace AkinatorBot
                 started = true;
                 answer = akinator.Start();
             }
+            else if (e.Message.Text.StartsWith("add"))
+            {
+                var name = "";
+                var words = e.Message.Text.Split().Skip(1).ToArray();
+                for (var i = 0; i < words.Length - 1; i++)
+                {
+                    name += words[i] + " ";
+                }
+                name += words.Last();
+
+                akinator.AddCharacter(name);
+                return;
+            }
+            else if (e.Message.Text.StartsWith("save"))
+            {
+                akinator.Save();
+                return;
+            }
             else if(!started)
             {
                 return;
@@ -61,29 +78,16 @@ namespace AkinatorBot
             {
                 answer = akinator.NextQuestion(UserAnswer.DontKnow);
             }
-            else if(e.Message.Text.StartsWith("add"))
-            {
-                var name = "";
-                var words = e.Message.Text.Split().Skip(1).ToArray();
-                for (var i = 0; i < words.Length - 1; i++)
-                {
-                    name += words[i] + " ";
-                }
-                name += words.Last();
-                
-                akinator.AddCharacter(name);
-                return;
-            }
-            else if(e.Message.Text.StartsWith("save"))
-            {
-                akinator.Save();
-                return;
-            }
             else answer = new AkinatorAnswer
             {
                 Message = "Pls, type 'start', 'yes', 'no' or 'idk'"
             };
 
+            if (answer == null)
+            {
+                started = false;
+                return;
+            }
             var message = AnswerToString(answer);
             //var shitEncoding = new UTF8Encoding(false);
             //var bytes = Encoding.UTF8.GetBytes(message);

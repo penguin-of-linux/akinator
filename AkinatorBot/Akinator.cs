@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AkinatorBot.DataProvider;
@@ -12,11 +13,12 @@ namespace AkinatorBot
         public Akinator(IDataProvider dataProvider)
         {
             this.dataProvider = dataProvider;
+            gameCounter = dataProvider.GetGameCount();
             charactersWithProbability = dataProvider.GetCharacters()
                 .Select(x => new CharacterWithProbability
                 {
                     Character = x,
-                    Probability = x.Count / (double) gameCounter
+                    Probability = Math.Max(x.Count / (double) gameCounter, 0.1)
                 })
                 .ToList();
             history = new List<HistoryEntry>();
@@ -40,9 +42,11 @@ namespace AkinatorBot
             {
                 if (userAnswer == UserAnswer.Yes)
                 {
-                    RecalculateCharacters(userAnswer);
+                    //RecalculateCharacters(userAnswer);
                     RecalculateEnd(characterToSuppose);
-                    EndGame();
+                    gameCounter++;
+                    Save();
+                    return null;
                 }
                 else
                 {
@@ -68,9 +72,9 @@ namespace AkinatorBot
             {
                 characterQuestions.Add(new CharacterQuestion
                 {
-                    Count = 0,
+                    Count = 1,
                     Id = i,
-                    Probability = 0.1d
+                    Probability = 0.5d
                 });
             }
 
@@ -87,13 +91,14 @@ namespace AkinatorBot
             charactersWithProbability.Add(new CharacterWithProbability
             {
                 Character = character,
-                Probability = 0.1
+                Probability = 0.5
             });
         }
 
         public void Save()
         {
             dataProvider.Save(charactersWithProbability.Select(x => x.Character));
+            dataProvider.SaveGameCount(gameCounter);
         }
 
         private void EndGame()
@@ -126,12 +131,16 @@ namespace AkinatorBot
 
         private int GetBestQuestion(CharacterEntry bestCharacter)
         {
-            var question = bestCharacter.Questions
-                .OrderByDescending(x => x.Probability)
-                .Select(x => x.Id)
-                .Except(history.Select(x => x.QuestionId))
-                .First();
-            return question;
+            var questions = bestCharacter.Questions
+                .Where(x => history.All(y => y.QuestionId != x.Id))
+                .ToArray();
+            var maxP = questions.Max(x => x.Probability);
+            var ids = questions.Where(x => x.Probability >= maxP)
+                .Select(x => x.Id).ToArray();
+
+            if (ids.Length == 1)
+                return ids[0];
+            return ids[random.Next(ids.Length - 1)];
         }
 
         private void RecalculateCharacters(UserAnswer userAnswer)
@@ -179,7 +188,8 @@ namespace AkinatorBot
         private CharacterEntry characterToSuppose;
         private int questionCounter;
         private int nextQuestionId;
-        private int gameCounter = 1;
+        private int gameCounter;
+        private Random random = new Random(Guid.NewGuid().GetHashCode());
 
         private List<HistoryEntry> history { get; set; }
         private List<CharacterWithProbability> charactersWithProbability;

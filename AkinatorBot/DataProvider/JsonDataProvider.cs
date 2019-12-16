@@ -11,6 +11,7 @@ namespace AkinatorBot.DataProvider
         {
             questions = JsonConvert.DeserializeObject<string[]>(File.ReadAllText("files/questions.json"));
             characters = JsonConvert.DeserializeObject<CharacterEntry[]>(File.ReadAllText("files/characters.json"));
+            gameCount = int.Parse(File.ReadAllText("files/gamecount.json"));
         }
         
         public string[] GetQuestions()  
@@ -25,9 +26,20 @@ namespace AkinatorBot.DataProvider
 
         public void Save(IEnumerable<CharacterEntry> characters)
         {
-            File.WriteAllText("../../files/characters.json", JsonConvert.SerializeObject(characters, Formatting.Indented));
+            File.WriteAllText("../../files/characters.json", JsonConvert.SerializeObject(characters));
         }
 
+        public int GetGameCount()
+        {
+            return gameCount;
+        }
+
+        public void SaveGameCount(int count)
+        {
+            File.WriteAllText("../../files/gamecount.json", count.ToString());
+        }
+
+        private readonly int gameCount;
         private readonly string[] questions;
         private readonly CharacterEntry[] characters;
     }

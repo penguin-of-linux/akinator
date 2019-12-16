@@ -7,5 +7,7 @@ namespace AkinatorBot.DataProvider
         string[] GetQuestions();
         CharacterEntry[] GetCharacters();
         void Save(IEnumerable<CharacterEntry> characters);
+        int GetGameCount();
+        void SaveGameCount(int count);
     }
 }
