@@ -63,6 +63,14 @@
     <Compile Include="AkinatorAnswerType.cs" />
     <Compile Include="CharacterEntry.cs" />
     <Compile Include="CharacterWithProbability.cs" />
+    <Compile Include="Commands\AddCommand.cs" />
+    <Compile Include="Commands\IBotCommand.cs" />
+    <Compile Include="Commands\IdkCommand.cs" />
+    <Compile Include="Commands\NoCommand.cs" />
+    <Compile Include="Commands\SaveCommand.cs" />
+    <Compile Include="Commands\StartCommand.cs" />
+    <Compile Include="Commands\SupposeCommand.cs" />
+    <Compile Include="Commands\YesCommand.cs" />
     <Compile Include="DataProvider\IDataProvider.cs" />
     <Compile Include="DataProvider\JsonDataProvider.cs" />
     <Compile Include="CharacterQuestion.cs" />
