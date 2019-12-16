@@ -3,6 +3,7 @@
     public enum AkinatorAnswerType
     {
         Question,
-        Answer
+        Answer,
+        Surrender
     }
 }

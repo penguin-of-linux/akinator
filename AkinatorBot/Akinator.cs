@@ -11,7 +11,7 @@ namespace AkinatorBot
 
         public Akinator(IDataProvider dataProvider)
         {
-            this._dataProvider = dataProvider;
+            _dataProvider = dataProvider;
             _gameCounter = dataProvider.GetGameCount();
             _charactersWithProbability = dataProvider.GetCharacters()
                 .Select(x => new CharacterWithProbability
@@ -22,11 +22,13 @@ namespace AkinatorBot
                 .ToList();
             _history = new List<HistoryEntry>();
             _questions = dataProvider.GetQuestions();
+            _supposedCharacters = new HashSet<CharacterEntry>();
         }
 
 
         public AkinatorAnswer Start()
         {
+            _supposedCharacters.Clear();
             _started = true;
             _characterToSuppose = null;
             _nextQuestionId = 0;
@@ -53,6 +55,7 @@ namespace AkinatorBot
                     return null;
                 }
 
+                _supposedCharacters.Add(_characterToSuppose);
                 _characterToSuppose = null;
             }
 
@@ -61,6 +64,8 @@ namespace AkinatorBot
 
             if (nextQuestion.AkinatorAnswerType == AkinatorAnswerType.Answer)
                 _characterToSuppose = nextQuestion.CharacterToSuppose;
+            if (nextQuestion.AkinatorAnswerType == AkinatorAnswerType.Surrender)
+                EndGame();
 
             return nextQuestion;
         }
@@ -70,7 +75,14 @@ namespace AkinatorBot
             if (!_started)
                 return null;
             var bestCharacter = GetTheBestCharacter();
-            _characterToSuppose = bestCharacter;
+            if (bestCharacter == null)
+            {
+                return new AkinatorAnswer
+                {
+                    AkinatorAnswerType = AkinatorAnswerType.Surrender,
+                    Message = "I give up("
+                };
+            }
             return SupposeInternal(bestCharacter);
         }
 
@@ -110,6 +122,7 @@ namespace AkinatorBot
 
         private AkinatorAnswer SupposeInternal(CharacterEntry character)
         {
+            _characterToSuppose = character;
             return new AkinatorAnswer
             {
                 AkinatorAnswerType = AkinatorAnswerType.Answer,
@@ -129,6 +142,14 @@ namespace AkinatorBot
         private AkinatorAnswer NextQuestionInternal()
         {
             var bestCharacter = GetTheBestCharacter();
+            if (bestCharacter == null)
+            {
+                return new AkinatorAnswer
+                {
+                    AkinatorAnswerType = AkinatorAnswerType.Surrender,
+                    Message = "I give up("
+                };
+            }
             var bestQuestion = GetBestQuestion(bestCharacter);
             _nextQuestionId = bestQuestion;
 
@@ -182,6 +203,9 @@ namespace AkinatorBot
 
         private void RecalculateEnd(CharacterEntry character)
         {
+            if (character == null)
+                return;
+
             foreach (var question in character.Questions)
             {
                 var questionFromHistory = _history.FirstOrDefault(x => x.QuestionId == question.Id);
@@ -196,7 +220,10 @@ namespace AkinatorBot
 
         private CharacterEntry GetTheBestCharacter()
         {
-            return _charactersWithProbability.OrderByDescending(x => x.Probability).First().Character;
+            return _charactersWithProbability
+                .Where(x => !_supposedCharacters.Contains(x.Character))
+                .OrderByDescending(x => x.Probability)
+                .FirstOrDefault()?.Character;
         }
 
         private List<CharacterWithProbability> _charactersWithProbability;
@@ -206,8 +233,9 @@ namespace AkinatorBot
         private int _gameCounter;
         private int _nextQuestionId;
         private int _questionCounter;
-        private readonly string[] _questions;
+        private HashSet<CharacterEntry> _supposedCharacters;
 
+        private readonly string[] _questions;
         private readonly IDataProvider _dataProvider;
         private readonly Random _random = new Random(Guid.NewGuid().GetHashCode());
     }
