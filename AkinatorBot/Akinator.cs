@@ -29,6 +29,7 @@ namespace AkinatorBot
 
         public AkinatorAnswer Start()
         {
+            _history.Clear();
             _supposedCharacters.Clear();
             _started = true;
             _characterToSuppose = null;
@@ -208,13 +209,14 @@ namespace AkinatorBot
             if (character == null)
                 return;
 
-            foreach (var question in character.Questions)
+            foreach (var question in _history)
             {
-                var questionFromHistory = _history.FirstOrDefault(x => x.QuestionId == question.Id);
-                var usedAndYes = questionFromHistory != null && questionFromHistory.UserAnswer == UserAnswer.Yes;
-                question.Probability =
-                    (question.Count * question.Probability + (usedAndYes ? 1 : 0)) / (question.Count + 1);
-                if (usedAndYes) question.Count++;
+                var characterQuestion = character.Questions.First(x => x.Id == question.QuestionId);
+                var yes = question.UserAnswer == UserAnswer.Yes;
+                characterQuestion.Probability =
+                    (characterQuestion.Count * characterQuestion.Probability + (yes ? 1 : 0)) 
+                    / (characterQuestion.Count + 1);
+                if (yes) characterQuestion.Count++;
             }
 
             character.Count++;
