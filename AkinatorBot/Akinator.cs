@@ -92,12 +92,14 @@ namespace AkinatorBot
         {
             var characterQuestions = new List<CharacterQuestion>();
             for (var i = 1; i <= _questions.Length; i++)
+            {
                 characterQuestions.Add(new CharacterQuestion
                 {
                     Count = 1,
                     Id = i,
                     Probability = 0.5d
                 });
+            }
 
             AddCharacter(new CharacterEntry
             {
@@ -114,6 +116,8 @@ namespace AkinatorBot
                 Character = character,
                 Probability = 0.5
             });
+
+            RecalculateEnd(character);
         }
 
         public void Save()
